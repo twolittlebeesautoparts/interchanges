@@ -52,16 +52,8 @@ header{
   color:#000; font-weight:900;
   box-shadow:0 10px 30px rgba(244,196,48,.18);
 }
-.brand h1{
-  margin:0;
-  font-size:16px;
-  letter-spacing:.3px;
-}
-.brand .sub{
-  margin-top:2px;
-  font-size:12px;
-  color:var(--muted);
-}
+.brand h1{margin:0;font-size:16px;letter-spacing:.3px}
+.brand .sub{margin-top:2px;font-size:12px;color:var(--muted)}
 .pill{
   border:1px solid var(--line);
   background:rgba(15,26,46,.7);
@@ -84,9 +76,7 @@ main{
   grid-template-columns: 1.4fr .9fr;
   gap:14px;
 }
-@media (max-width: 980px){
-  main{grid-template-columns:1fr}
-}
+@media (max-width: 980px){ main{grid-template-columns:1fr} }
 .card{
   background:linear-gradient(180deg, rgba(15,26,46,.9), rgba(11,21,38,.9));
   border:1px solid var(--line);
@@ -102,11 +92,7 @@ main{
   justify-content:space-between;
   gap:10px;
 }
-.card .top h2{
-  margin:0;
-  font-size:14px;
-  letter-spacing:.6px;
-}
+.card .top h2{margin:0;font-size:14px;letter-spacing:.6px}
 .card .content{padding:14px}
 .grid{
   display:grid;
@@ -148,11 +134,7 @@ textarea{min-height:110px; resize:vertical}
   margin-top:10px;
   line-height:1.35;
 }
-.results{
-  margin-top:12px;
-  display:grid;
-  gap:10px;
-}
+.results{margin-top:12px;display:grid;gap:10px}
 .result{
   background:#071021;
   border:1px solid var(--line);
@@ -160,9 +142,7 @@ textarea{min-height:110px; resize:vertical}
   padding:12px;
   border-left:4px solid var(--ok);
 }
-.bad{
-  border-left-color:var(--bad);
-}
+.result.bad{border-left-color:var(--bad)}
 .badge{
   display:inline-flex;
   gap:8px;
@@ -175,14 +155,8 @@ textarea{min-height:110px; resize:vertical}
   color:var(--ok);
   font-weight:800;
 }
-.badge.bad{
-  background:rgba(255,93,93,.12);
-  color:var(--bad);
-}
-.small{
-  font-size:12px;
-  color:var(--muted);
-}
+.badge.bad{background:rgba(255,93,93,.12);color:var(--bad)}
+.small{font-size:12px;color:var(--muted)}
 .hr{height:1px;background:var(--line);margin:12px 0}
 .toast{
   position:fixed; left:50%; transform:translateX(-50%);
@@ -194,6 +168,41 @@ textarea{min-height:110px; resize:vertical}
   color:var(--text);
   display:none;
 }
+
+/* Admin lock overlay */
+.locked{
+  opacity:.35;
+  filter:saturate(.8);
+  pointer-events:none;
+}
+.modalWrap{
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+.modal{
+  width:min(520px, 95vw);
+  background:linear-gradient(180deg, rgba(15,26,46,.98), rgba(11,21,38,.98));
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:0 30px 80px rgba(0,0,0,.6);
+  overflow:hidden;
+}
+.modalTop{
+  padding:14px 14px 10px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.modalTop h3{margin:0;font-size:14px;letter-spacing:.6px}
+.modalBody{padding:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:520px){.row2{grid-template-columns:1fr}}
+.err{color:var(--bad);font-size:12px;margin-top:10px;display:none}
 </style>
 </head>
 
@@ -205,10 +214,13 @@ textarea{min-height:110px; resize:vertical}
       <div class="logo">JB</div>
       <div>
         <h1>JB Parts Interchange</h1>
-        <div class="sub">Firebase + VIN Decode + Admin Add/Update</div>
+        <div class="sub">GitHub Pages + Firestore • VIN Decode • Admin Add/Update</div>
       </div>
     </div>
-    <button class="pill" type="button" onclick="scrollToAdmin()">Admin</button>
+    <div style="display:flex;gap:10px;align-items:center">
+      <span class="small" id="status">Connecting…</span>
+      <button class="pill" type="button" onclick="openAdmin()">Admin</button>
+    </div>
   </div>
 </header>
 
@@ -219,52 +231,54 @@ textarea{min-height:110px; resize:vertical}
   <section class="card">
     <div class="top">
       <h2>AUTO PARTS INTERCHANGE</h2>
-      <span class="small" id="status">Connecting…</span>
+      <span class="small">Type anything • Suggestions load from Firestore</span>
     </div>
+
     <div class="content">
       <div class="grid">
         <div class="field wide">
           <label>VIN (optional)</label>
-          <input id="vin" placeholder="Enter 17-digit VIN" inputmode="latin-prose" />
+          <input id="vin" placeholder="Enter 17-digit VIN" />
         </div>
         <div class="field">
           <label>&nbsp;</label>
           <button class="pill primary" type="button" onclick="decodeVIN()">Decode VIN</button>
         </div>
 
+        <!-- Typeable inputs + datalists -->
         <div class="field">
           <label>Year</label>
-          <select id="year">
-            <option value="">Year</option>
-          </select>
+          <input id="year" list="yearsList" placeholder="2020" inputmode="numeric" />
+          <datalist id="yearsList"></datalist>
         </div>
+
         <div class="field">
           <label>Make</label>
-          <select id="make" disabled>
-            <option value="">Make</option>
-          </select>
+          <input id="make" list="makesList" placeholder="Toyota" />
+          <datalist id="makesList"></datalist>
         </div>
+
         <div class="field">
           <label>Model</label>
-          <select id="model" disabled>
-            <option value="">Model</option>
-          </select>
+          <input id="model" list="modelsList" placeholder="Camry" />
+          <datalist id="modelsList"></datalist>
         </div>
+
         <div class="field">
           <label>Part</label>
-          <select id="part">
-            <option value="">Part</option>
-            <option>Engine</option>
-            <option>Transmission</option>
-            <option>Wheels</option>
-            <option>Battery</option>
-            <option>Alternator</option>
-            <option>Starter</option>
-            <option>Radiator</option>
-            <option>Headlight</option>
-            <option>Door</option>
-            <option>Bumper</option>
-          </select>
+          <input id="part" list="partsList" placeholder="Battery" />
+          <datalist id="partsList">
+            <option value="Engine"></option>
+            <option value="Transmission"></option>
+            <option value="Wheels"></option>
+            <option value="Battery"></option>
+            <option value="Alternator"></option>
+            <option value="Starter"></option>
+            <option value="Radiator"></option>
+            <option value="Headlight"></option>
+            <option value="Door"></option>
+            <option value="Bumper"></option>
+          </datalist>
         </div>
 
         <div class="field full">
@@ -275,8 +289,8 @@ textarea{min-height:110px; resize:vertical}
       <div class="results" id="results"></div>
 
       <div class="note">
-        If your dropdowns look “dead”, it means <b>Firestore has no data yet</b> or rules are blocking reads.
-        This page is meant to run on <b>Firebase Hosting</b> (not HTML online viewer).
+        If it says permission denied, you must allow Firestore reads/writes in Rules.
+        This runs on GitHub Pages just fine — Firestore rules are what block it.
       </div>
     </div>
   </section>
@@ -285,63 +299,87 @@ textarea{min-height:110px; resize:vertical}
   <section class="card" id="adminCard">
     <div class="top">
       <h2>ADMIN – ADD / UPDATE VEHICLE</h2>
-      <span class="small">Updates same vehicle (no duplicates)</span>
+      <span class="small">Locked until login</span>
     </div>
-    <div class="content">
-      <div class="grid">
-        <div class="field">
-          <label>Year</label>
-          <input id="ayear" placeholder="2020" inputmode="numeric" />
-        </div>
-        <div class="field">
-          <label>Make</label>
-          <input id="amake" placeholder="Ford" />
-        </div>
-        <div class="field">
-          <label>Model</label>
-          <input id="amodel" placeholder="F150" />
-        </div>
-        <div class="field">
-          <label>Part</label>
-          <select id="apart">
-            <option>Engine</option>
-            <option>Transmission</option>
-            <option>Wheels</option>
-            <option>Battery</option>
-            <option>Alternator</option>
-            <option>Starter</option>
-            <option>Radiator</option>
-            <option>Headlight</option>
-            <option>Door</option>
-            <option>Bumper</option>
-          </select>
-        </div>
 
-        <div class="field full">
-          <label>Interchange list (one per line)</label>
-          <textarea id="ainterchange" placeholder="Example:
+    <div class="content">
+      <div id="adminLockedNote" class="result bad">
+        <span class="badge bad">Admin locked</span>
+        <div style="margin-top:8px">Click <b>Admin</b> top-right and login to edit vehicles.</div>
+      </div>
+
+      <div id="adminBody" class="locked">
+        <div class="grid">
+          <div class="field">
+            <label>Year</label>
+            <input id="ayear" placeholder="2020" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label>Make</label>
+            <input id="amake" placeholder="Ford" />
+          </div>
+          <div class="field">
+            <label>Model</label>
+            <input id="amodel" placeholder="F150" />
+          </div>
+          <div class="field">
+            <label>Part</label>
+            <input id="apart" list="partsList" placeholder="Engine" />
+          </div>
+
+          <div class="field full">
+            <label>Interchange list (one per line)</label>
+            <textarea id="ainterchange" placeholder="Example:
 2018–2020 Ford F150 5.0L
 2017–2019 Ford Expedition 5.0L
 2018–2021 Mustang 5.0L"></textarea>
+          </div>
+
+          <div class="field full actions">
+            <button class="pill primary" type="button" onclick="saveVehiclePart()">Save Vehicle / Part</button>
+            <button class="pill" type="button" onclick="seedExample()">Seed Example Data</button>
+          </div>
         </div>
 
-        <div class="field full actions">
-          <button class="pill primary" type="button" onclick="saveVehiclePart()">Save Vehicle / Part</button>
-          <button class="pill secondary" type="button" onclick="seedExample()">Seed Example Data</button>
+        <div class="hr"></div>
+        <div class="note">
+          ⚠️ This “username/password lock” is a quick client-side lock (not true security).
+          If you want real protection, say <b>lock admin for real</b> and I’ll set up Firebase Auth + strict Firestore rules.
         </div>
-      </div>
-
-      <div class="hr"></div>
-
-      <div class="note">
-        <b>Important:</b> For real security, you’ll add Firebase Auth so only you can write.
-        For now, use rules for testing then lock it down.
       </div>
     </div>
   </section>
 </main>
 
-<!-- ✅ Everything Firebase in one place -->
+<!-- Admin login modal -->
+<div class="modalWrap" id="adminModal">
+  <div class="modal">
+    <div class="modalTop">
+      <h3>Admin Login</h3>
+      <button class="pill" type="button" onclick="closeAdmin()">Close</button>
+    </div>
+    <div class="modalBody">
+      <div class="row2">
+        <div>
+          <label>Username</label>
+          <input id="adminUser" placeholder="username" autocomplete="username" />
+        </div>
+        <div>
+          <label>Password</label>
+          <input id="adminPass" type="password" placeholder="password" autocomplete="current-password" />
+        </div>
+      </div>
+
+      <div class="err" id="adminErr">Wrong username or password.</div>
+
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <button class="pill primary" type="button" onclick="adminLogin()">Login</button>
+        <button class="pill" type="button" onclick="adminLogout()">Logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
   import {
@@ -357,7 +395,7 @@ textarea{min-height:110px; resize:vertical}
     limit
   } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
-  // ✅ YOUR Firebase config already installed
+  // ✅ Your Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyDZOxfCjD9kAZJDlVLRT_enhXXZCC3GlH0",
     authDomain: "jb-parts-interchanges.firebaseapp.com",
@@ -371,22 +409,45 @@ textarea{min-height:110px; resize:vertical}
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // DOM
+  // ===== DOM
   const statusEl = document.getElementById("status");
   const toastEl = document.getElementById("toast");
+  const resultsEl = document.getElementById("results");
 
-  const yearSel  = document.getElementById("year");
-  const makeSel  = document.getElementById("make");
-  const modelSel = document.getElementById("model");
-  const partSel  = document.getElementById("part");
-  const vinEl    = document.getElementById("vin");
-  const resultsEl= document.getElementById("results");
+  // Search inputs
+  const yearEl = document.getElementById("year");
+  const makeEl = document.getElementById("make");
+  const modelEl = document.getElementById("model");
+  const partEl = document.getElementById("part");
+  const vinEl = document.getElementById("vin");
+
+  // Datalists
+  const yearsList = document.getElementById("yearsList");
+  const makesList = document.getElementById("makesList");
+  const modelsList = document.getElementById("modelsList");
+
+  // Admin body
+  const adminBody = document.getElementById("adminBody");
+  const adminLockedNote = document.getElementById("adminLockedNote");
 
   const ayear = document.getElementById("ayear");
   const amake = document.getElementById("amake");
   const amodel = document.getElementById("amodel");
   const apart = document.getElementById("apart");
   const ainterchange = document.getElementById("ainterchange");
+
+  // Admin modal
+  const adminModal = document.getElementById("adminModal");
+  const adminUser = document.getElementById("adminUser");
+  const adminPass = document.getElementById("adminPass");
+  const adminErr = document.getElementById("adminErr");
+
+  // ===== Quick lock (NOT true security)
+  // User requested:
+  // username: blas2025
+  // password: 1520
+  const ADMIN_USER = "blas2025";
+  const ADMIN_PASS = "1520";
 
   function toast(msg){
     toastEl.textContent = msg;
@@ -395,139 +456,89 @@ textarea{min-height:110px; resize:vertical}
   }
 
   function norm(s){
-    return String(s || "")
-      .trim()
-      .replace(/\s+/g," ")
-      .toLowerCase();
+    return String(s||"").trim().replace(/\s+/g," ").toLowerCase();
   }
-
   function titleCaseKeepDigits(s){
-    // simple nice display: "ford" -> "Ford", "F150" stays "F150"
     const parts = String(s||"").trim().split(/\s+/);
     return parts.map(p=>{
       if(/[0-9]/.test(p)) return p.toUpperCase();
-      return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
+      return p.charAt(0).toUpperCase()+p.slice(1).toLowerCase();
     }).join(" ");
   }
 
   function vehicleId(year, make, model){
-    // Stable ID so we UPDATE instead of making duplicates
     return `${year}_${norm(make)}_${norm(model)}`.replace(/[^a-z0-9_]/g,"");
   }
 
-  function resetSelect(sel, label){
-    sel.innerHTML = `<option value="">${label}</option>`;
-    sel.disabled = false;
+  function fillDatalist(dl, values){
+    dl.innerHTML = "";
+    [...new Set(values)].filter(Boolean).forEach(v=>{
+      const o=document.createElement("option");
+      o.value = v;
+      dl.appendChild(o);
+    });
   }
-  function setLoading(sel, label){
-    sel.innerHTML = `<option value="">${label}</option>`;
-    sel.disabled = true;
-  }
-  function addOption(sel, text){
-    const o = document.createElement("option");
-    o.value = text;
-    o.textContent = text;
-    sel.appendChild(o);
+
+  function showResult(html){
+    resultsEl.innerHTML = html;
   }
 
   async function ping(){
     try{
-      // simple read to check connectivity
       await getDocs(query(collection(db,"vehicles"), limit(1)));
       statusEl.textContent = "Connected ✅";
     }catch(e){
       console.error(e);
-      statusEl.textContent = "Blocked ❌";
+      statusEl.textContent = "Firestore blocked ❌";
+      showResult(`<div class="result bad"><span class="badge bad">Permission</span><div style="margin-top:8px">Firestore rules are blocking reads. In Firebase Console → Firestore → Rules, allow read for testing.</div></div>`);
     }
   }
 
   async function loadYears(){
     try{
-      setLoading(yearSel, "Loading years...");
-      setLoading(makeSel, "Make");
-      setLoading(modelSel, "Model");
-
       const snap = await getDocs(collection(db,"vehicles"));
-      const years = [...new Set(snap.docs.map(d=>d.data()?.year))]
-        .filter(v=>typeof v === "number")
-        .sort((a,b)=>a-b);
-
-      resetSelect(yearSel, "Year");
-      years.forEach(y=>addOption(yearSel, String(y)));
-
-      resetSelect(makeSel, "Make");
-      makeSel.disabled = true;
-      resetSelect(modelSel, "Model");
-      modelSel.disabled = true;
-
-      if(years.length===0){
-        resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">No data yet</span><div style="margin-top:8px">Use the Admin box to Seed Example Data or add your first vehicle.</div></div>`;
-      }
+      const years = snap.docs.map(d=>d.data()?.year)
+        .filter(v=>typeof v==="number")
+        .sort((a,b)=>a-b)
+        .map(String);
+      fillDatalist(yearsList, years);
     }catch(e){
       console.error(e);
-      resetSelect(yearSel, "Year");
-      statusEl.textContent = "Rules/Hosting issue ❌";
-      resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">Firebase blocked</span><div style="margin-top:8px">This page must run on Firebase Hosting (or localhost server). HTML online viewers often block Firestore.</div></div>`;
     }
   }
 
   async function loadMakes(){
-    resetSelect(makeSel,"Make");
-    resetSelect(modelSel,"Model");
-    modelSel.disabled = true;
-
-    if(!yearSel.value){
-      makeSel.disabled = true;
-      return;
-    }
-
-    setLoading(makeSel,"Loading makes...");
-    const qy = query(collection(db,"vehicles"), where("year","==", Number(yearSel.value)));
-    const snap = await getDocs(qy);
-
-    const makes = [...new Set(snap.docs.map(d=>d.data()?.make))]
-      .filter(Boolean)
-      .map(m=>titleCaseKeepDigits(m))
-      .sort();
-
-    resetSelect(makeSel,"Make");
-    makes.forEach(m=>addOption(makeSel,m));
+    // Only load suggestions if a year is typed
+    const y = Number(yearEl.value);
+    if(!y) return;
+    const snap = await getDocs(query(collection(db,"vehicles"), where("year","==", y)));
+    const makes = snap.docs.map(d=>d.data()?.make).filter(Boolean).map(titleCaseKeepDigits);
+    fillDatalist(makesList, makes);
   }
 
   async function loadModels(){
-    resetSelect(modelSel,"Model");
-    if(!yearSel.value || !makeSel.value){
-      modelSel.disabled = true;
-      return;
-    }
-
-    setLoading(modelSel,"Loading models...");
-    const qm = query(
+    const y = Number(yearEl.value);
+    const mk = makeEl.value.trim();
+    if(!y || !mk) return;
+    const snap = await getDocs(query(
       collection(db,"vehicles"),
-      where("year","==", Number(yearSel.value)),
-      where("make","==", makeSel.value)
-    );
-    const snap = await getDocs(qm);
-
-    const models = [...new Set(snap.docs.map(d=>d.data()?.model))]
-      .filter(Boolean)
-      .map(m=>titleCaseKeepDigits(m))
-      .sort();
-
-    resetSelect(modelSel,"Model");
-    models.forEach(m=>addOption(modelSel,m));
+      where("year","==", y),
+      where("make","==", mk)
+    ));
+    const models = snap.docs.map(d=>d.data()?.model).filter(Boolean).map(titleCaseKeepDigits);
+    fillDatalist(modelsList, models);
   }
 
   async function findInterchange(){
     resultsEl.innerHTML = "";
 
-    const y = Number(yearSel.value);
-    const mk = makeSel.value;
-    const md = modelSel.value;
-    const pt = partSel.value;
+    const y  = Number(yearEl.value);
+    const mk = makeEl.value.trim();
+    const md = modelEl.value.trim();
+    const pt = partEl.value.trim();
 
     if(!y || !mk || !md || !pt){
-      resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">Missing</span><div style="margin-top:8px">Pick Year / Make / Model / Part.</div></div>`;
+      showResult(`<div class="result bad"><span class="badge bad">Missing</span><div style="margin-top:8px">Pick / type Year, Make, Model, Part.</div></div>`);
       return;
     }
 
@@ -538,10 +549,11 @@ textarea{min-height:110px; resize:vertical}
       where("model","==", md),
       limit(1)
     );
+
     const snap = await getDocs(qv);
 
     if(snap.empty){
-      resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">No data found</span><div style="margin-top:8px">Add it in Admin or seed example data.</div></div>`;
+      showResult(`<div class="result bad"><span class="badge bad">No data</span><div style="margin-top:8px">No record found. Add it in Admin.</div></div>`);
       return;
     }
 
@@ -549,11 +561,15 @@ textarea{min-height:110px; resize:vertical}
     const list = data?.parts?.[pt];
 
     if(!Array.isArray(list) || list.length===0){
-      resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">No interchange</span><div style="margin-top:8px">No list saved for ${pt} on this vehicle.</div></div>`;
+      showResult(`<div class="result bad"><span class="badge bad">No interchange</span><div style="margin-top:8px">No list saved for <b>${pt}</b>.</div></div>`);
       return;
     }
 
-    resultsEl.innerHTML = `<div class="result"><span class="badge">Found</span><div style="margin-top:8px" class="small">${y} ${mk} ${md} • ${pt}</div></div>`;
+    resultsEl.innerHTML = `
+      <div class="result"><span class="badge">Found</span>
+        <div style="margin-top:8px" class="small">${y} ${mk} ${md} • ${pt}</div>
+      </div>
+    `;
     list.forEach(item=>{
       const div = document.createElement("div");
       div.className = "result";
@@ -563,13 +579,13 @@ textarea{min-height:110px; resize:vertical}
   }
 
   async function decodeVIN(){
-    const v = (vinEl.value || "").trim().toUpperCase();
+    const v = (vinEl.value||"").trim().toUpperCase();
     if(v.length !== 17){
       toast("Enter a 17-digit VIN");
       return;
     }
 
-    resultsEl.innerHTML = `<div class="result"><span class="badge">Decoding…</span><div style="margin-top:8px">Looking up VIN with NHTSA.</div></div>`;
+    showResult(`<div class="result"><span class="badge">Decoding…</span><div style="margin-top:8px">Looking up VIN with NHTSA.</div></div>`);
 
     const r = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${v}?format=json`);
     const d = (await r.json()).Results?.[0] || {};
@@ -579,24 +595,41 @@ textarea{min-height:110px; resize:vertical}
     const md = d.Model ? titleCaseKeepDigits(d.Model) : "";
 
     if(!y || !mk || !md){
-      resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">Decode failed</span><div style="margin-top:8px">VIN decoded, but Year/Make/Model missing from response.</div></div>`;
+      showResult(`<div class="result bad"><span class="badge bad">Decode failed</span><div style="margin-top:8px">Year/Make/Model missing from VIN response.</div></div>`);
       return;
     }
 
-    yearSel.value = y;
+    yearEl.value = y;
     await loadMakes();
-    makeSel.value = mk;
+    makeEl.value = mk;
     await loadModels();
-    modelSel.value = md;
+    modelEl.value = md;
 
-    resultsEl.innerHTML = `<div class="result"><span class="badge">VIN OK</span><div style="margin-top:8px">${y} ${mk} ${md}</div></div>`;
+    showResult(`<div class="result"><span class="badge">VIN OK</span><div style="margin-top:8px">${y} ${mk} ${md}</div></div>`);
+  }
+
+  function ensureAdmin(){
+    const ok = localStorage.getItem("jb_admin_ok") === "1";
+    if(ok){
+      adminBody.classList.remove("locked");
+      adminLockedNote.style.display = "none";
+    }else{
+      adminBody.classList.add("locked");
+      adminLockedNote.style.display = "block";
+    }
+    return ok;
   }
 
   async function saveVehiclePart(){
+    if(!ensureAdmin()){
+      toast("Admin locked");
+      return;
+    }
+
     const y = Number((ayear.value||"").trim());
     const mk = titleCaseKeepDigits(amake.value);
     const md = titleCaseKeepDigits(amodel.value);
-    const pt = apart.value;
+    const pt = (apart.value||"").trim();
 
     const lines = (ainterchange.value||"")
       .split("\n")
@@ -612,36 +645,36 @@ textarea{min-height:110px; resize:vertical}
     const ref = doc(db, "vehicles", id);
     const snap = await getDoc(ref);
 
-    // Merge parts without wiping other parts
     const newPartMap = { [pt]: lines };
 
     if(!snap.exists()){
-      await setDoc(ref, {
-        year: y,
-        make: mk,
-        model: md,
-        parts: newPartMap
-      });
+      await setDoc(ref, { year:y, make:mk, model:md, parts:newPartMap });
     }else{
       const existing = snap.data() || {};
       const parts = existing.parts || {};
       parts[pt] = lines;
-      await updateDoc(ref, { parts });
+      await updateDoc(ref, { parts, year:y, make:mk, model:md });
     }
 
     toast("Saved ✅");
-    await loadYears();
 
-    // Optional: auto-select after save
-    yearSel.value = String(y);
+    // Also set the search inputs to what you just saved
+    yearEl.value = String(y);
     await loadMakes();
-    makeSel.value = mk;
+    makeEl.value = mk;
     await loadModels();
-    modelSel.value = md;
-    partSel.value = pt;
+    modelEl.value = md;
+    partEl.value = pt;
+
+    await loadYears();
   }
 
   async function seedExample(){
+    if(!ensureAdmin()){
+      toast("Admin locked");
+      return;
+    }
+
     ayear.value = "2018";
     amake.value = "Ford";
     amodel.value = "F150";
@@ -650,16 +683,6 @@ textarea{min-height:110px; resize:vertical}
       "2018–2020 Ford F150 5.0L",
       "2017–2019 Ford Expedition 5.0L",
       "2018–2021 Ford Mustang 5.0L"
-    ].join("\n");
-    await saveVehiclePart();
-
-    ayear.value = "2018";
-    amake.value = "Ford";
-    amodel.value = "F150";
-    apart.value = "Wheels";
-    ainterchange.value = [
-      "2015–2020 Ford F150 17in/18in wheels",
-      "2017–2020 Ford Expedition wheels"
     ].join("\n");
     await saveVehiclePart();
 
@@ -673,26 +696,62 @@ textarea{min-height:110px; resize:vertical}
     ].join("\n");
     await saveVehiclePart();
 
-    toast("Seeded examples ✅");
+    toast("Seeded ✅");
   }
 
-  function scrollToAdmin(){
-    document.getElementById("adminCard").scrollIntoView({behavior:"smooth", block:"start"});
+  function openAdmin(){
+    adminModal.style.display = "flex";
+    adminErr.style.display = "none";
+    adminUser.value = "";
+    adminPass.value = "";
+    adminUser.focus();
+  }
+  function closeAdmin(){
+    adminModal.style.display = "none";
+  }
+  function adminLogin(){
+    const u = (adminUser.value||"").trim();
+    const p = (adminPass.value||"").trim();
+    if(u === ADMIN_USER && p === ADMIN_PASS){
+      localStorage.setItem("jb_admin_ok", "1");
+      adminErr.style.display = "none";
+      closeAdmin();
+      ensureAdmin();
+      toast("Admin unlocked ✅");
+      document.getElementById("adminCard").scrollIntoView({behavior:"smooth", block:"start"});
+      return;
+    }
+    adminErr.style.display = "block";
+  }
+  function adminLogout(){
+    localStorage.removeItem("jb_admin_ok");
+    ensureAdmin();
+    toast("Logged out");
   }
 
-  // expose buttons
+  // expose functions for buttons
   window.findInterchange = findInterchange;
   window.decodeVIN = decodeVIN;
   window.saveVehiclePart = saveVehiclePart;
   window.seedExample = seedExample;
-  window.scrollToAdmin = scrollToAdmin;
+  window.openAdmin = openAdmin;
+  window.closeAdmin = closeAdmin;
+  window.adminLogin = adminLogin;
+  window.adminLogout = adminLogout;
 
-  yearSel.addEventListener("change", loadMakes);
-  makeSel.addEventListener("change", loadModels);
+  // input events (type-as-you-go suggestions)
+  yearEl.addEventListener("input", loadMakes);
+  makeEl.addEventListener("input", loadModels);
+
+  // close modal on background click
+  adminModal.addEventListener("click", (e)=>{
+    if(e.target === adminModal) closeAdmin();
+  });
 
   // init
   await ping();
   await loadYears();
+  ensureAdmin();
 </script>
 
 </body>
