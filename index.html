@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Car Parts Interchange</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+:root{
+  --bg:#020617;
+  --card:#111827;
+  --accent:#f4c430;
+  --accent2:#ffb703;
+  --text:#f9fafb;
+  --muted:#9ca3af;
+  --ok:#22c55e;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:linear-gradient(180deg,#020617,#000);
+  color:var(--text);
+  font-family:system-ui,Arial;
+}
+
+header{
+  padding:20px;
+  text-align:center;
+  font-size:26px;
+  font-weight:900;
+}
+
+main{
+  max-width:1000px;
+  margin:auto;
+  padding:20px;
+}
+
+.card{
+  background:var(--card);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:20px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:12px;
+}
+
+input,select,button,textarea{
+  padding:12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.15);
+  background:#020617;
+  color:var(--text);
+  font-weight:600;
+}
+
+button{
+  background:linear-gradient(180deg,var(--accent),var(--accent2));
+  color:#000;
+  border:none;
+  font-weight:900;
+  cursor:pointer;
+}
+
+button.secondary{
+  background:#020617;
+  color:var(--accent);
+  border:1px solid var(--accent);
+}
+
+.result{
+  margin-top:12px;
+  background:#020617;
+  padding:14px;
+  border-radius:12px;
+  border-left:4px solid var(--ok);
+}
+</style>
+</head>
+
+<body>
+
+<header>AUTO PARTS INTERCHANGE</header>
+
+<main>
+
+<!-- ================= SEARCH ================= -->
+<div class="card">
+<div class="grid">
+<input id="vin" placeholder="Enter VIN (optional)">
+<button onclick="decodeVIN()">Decode VIN</button>
+
+<select id="year"><option>Year</option></select>
+<select id="make"><option>Make</option></select>
+<select id="model"><option>Model</option></select>
+<select id="part">
+  <option>Part</option>
+  <option>Engine</option>
+  <option>Transmission</option>
+  <option>Wheels</option>
+  <option>Battery</option>
+  <option>Alternator</option>
+  <option>Starter</option>
+</select>
+</div>
+
+<br>
+<button onclick="findParts()">Find Interchange</button>
+<div id="results"></div>
+</div>
+
+<!-- ================= ADMIN ================= -->
+<div class="card">
+<h3>ADMIN – ADD / UPDATE VEHICLE</h3>
+
+<div class="grid">
+<input id="ayear" placeholder="Year (e.g. 2020)">
+<input id="amake" placeholder="Make (Ford)">
+<input id="amodel" placeholder="Model (F150)">
+<select id="apart">
+  <option>Engine</option>
+  <option>Transmission</option>
+  <option>Wheels</option>
+  <option>Battery</option>
+  <option>Alternator</option>
+  <option>Starter</option>
+</select>
+</div>
+
+<br>
+<textarea id="ainterchange" rows="4"
+placeholder="One interchange per line
+Example:
+2018–2020 Ford F150 5.0L
+2017–2019 Expedition"></textarea>
+
+<br><br>
+<button onclick="addVehicle()">Save Vehicle / Part</button>
+</div>
+
+</main>
+
+<script>
+/* ================= FIREBASE ================= */
+firebase.initializeApp({
+  apiKey:"YOUR_KEY",
+  authDomain:"YOUR_PROJECT.firebaseapp.com",
+  projectId:"YOUR_PROJECT"
+});
+const db=firebase.firestore();
+
+/* ================= LOAD YEARS ================= */
+const yearSel=year, makeSel=make, modelSel=model;
+
+async function loadYears(){
+  yearSel.innerHTML="<option>Year</option>";
+  const snap=await db.collection("vehicles").get();
+  [...new Set(snap.docs.map(d=>d.data().year))]
+    .sort().forEach(y=>yearSel.innerHTML+=`<option>${y}</option>`);
+}
+loadYears();
+
+yearSel.onchange=async()=>{
+  makeSel.innerHTML="<option>Make</option>";
+  modelSel.innerHTML="<option>Model</option>";
+  const snap=await db.collection("vehicles")
+    .where("year","==",Number(yearSel.value)).get();
+  [...new Set(snap.docs.map(d=>d.data().make))]
+    .forEach(m=>makeSel.innerHTML+=`<option>${m}</option>`);
+};
+
+makeSel.onchange=async()=>{
+  modelSel.innerHTML="<option>Model</option>";
+  const snap=await db.collection("vehicles")
+    .where("year","==",Number(yearSel.value))
+    .where("make","==",makeSel.value).get();
+  snap.docs.forEach(d=>modelSel.innerHTML+=`<option>${d.data().model}</option>`);
+};
+
+/* ================= VIN DECODE ================= */
+async function decodeVIN(){
+  const v=vin.value.trim();
+  if(v.length!==17) return alert("Invalid VIN");
+  const r=await fetch(
+    `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${v}?format=json`
+  );
+  const d=(await r.json()).Results[0];
+  yearSel.value=d.ModelYear;
+  yearSel.dispatchEvent(new Event("change"));
+  setTimeout(()=>{
+    makeSel.value=d.Make;
+    makeSel.dispatchEvent(new Event("change"));
+    setTimeout(()=>modelSel.value=d.Model,500);
+  },500);
+}
+
+/* ================= FIND INTERCHANGE ================= */
+async function findParts(){
+  results.innerHTML="";
+  const snap=await db.collection("vehicles")
+    .where("year","==",Number(yearSel.value))
+    .where("make","==",makeSel.value)
+    .where("model","==",modelSel.value)
+    .get();
+
+  if(snap.empty){
+    results.innerHTML="<div class='result'>No data found.</div>";
+    return;
+  }
+
+  const part=part.value;
+  const list=snap.docs[0].data().parts?.[part];
+  if(!list){
+    results.innerHTML="<div class='result'>No interchange available.</div>";
+    return;
+  }
+
+  list.forEach(i=>results.innerHTML+=`<div class="result">${i}</div>`);
+}
+
+/* ================= ADMIN SAVE ================= */
+async function addVehicle(){
+  const data={
+    year:Number(ayear.value),
+    make:amake.value,
+    model:amodel.value,
+    parts:{
+      [apart.value]: ainterchange.value.split("\n").filter(Boolean)
+    }
+  };
+  await db.collection("vehicles").add(data);
+  alert("Saved");
+  loadYears();
+}
+</script>
+
+</body>
+</html>
