@@ -1,247 +1,698 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Car Parts Interchange</title>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover" />
+<title>JB Parts Interchange</title>
 
 <style>
 :root{
-  --bg:#020617;
-  --card:#111827;
+  --bg:#070b12;
+  --panel:#0b1220;
+  --card:#0f1a2e;
+  --card2:#0b1526;
+  --text:#f5f7fb;
+  --muted:#a7b0c0;
   --accent:#f4c430;
   --accent2:#ffb703;
-  --text:#f9fafb;
-  --muted:#9ca3af;
   --ok:#22c55e;
+  --bad:#ff5d5d;
+  --line:rgba(255,255,255,.10);
 }
-
 *{box-sizing:border-box}
-
+html,body{height:100%}
 body{
   margin:0;
-  background:linear-gradient(180deg,#020617,#000);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:radial-gradient(900px 500px at 20% -10%, #1f2937, transparent), var(--bg);
   color:var(--text);
-  font-family:system-ui,Arial;
 }
-
 header{
-  padding:20px;
-  text-align:center;
-  font-size:26px;
-  font-weight:900;
+  position:sticky; top:0; z-index:10;
+  background:rgba(7,11,18,.85);
+  backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--line);
 }
-
-main{
-  max-width:1000px;
+.header-inner{
+  max-width:1100px;
   margin:auto;
-  padding:20px;
-}
-
-.card{
-  background:var(--card);
-  border-radius:18px;
-  padding:20px;
-  margin-bottom:20px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  padding:16px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
   gap:12px;
 }
-
-input,select,button,textarea{
-  padding:12px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.15);
-  background:#020617;
-  color:var(--text);
-  font-weight:600;
+.brand{
+  display:flex; align-items:center; gap:12px;
 }
-
-button{
+.logo{
+  width:42px; height:42px; border-radius:12px;
   background:linear-gradient(180deg,var(--accent),var(--accent2));
-  color:#000;
-  border:none;
-  font-weight:900;
+  display:grid; place-items:center;
+  color:#000; font-weight:900;
+  box-shadow:0 10px 30px rgba(244,196,48,.18);
+}
+.brand h1{
+  margin:0;
+  font-size:16px;
+  letter-spacing:.3px;
+}
+.brand .sub{
+  margin-top:2px;
+  font-size:12px;
+  color:var(--muted);
+}
+.pill{
+  border:1px solid var(--line);
+  background:rgba(15,26,46,.7);
+  color:var(--text);
+  padding:10px 12px;
+  border-radius:999px;
+  font-weight:800;
   cursor:pointer;
 }
-
-button.secondary{
-  background:#020617;
-  color:var(--accent);
-  border:1px solid var(--accent);
+.pill.primary{
+  border:none;
+  color:#000;
+  background:linear-gradient(180deg,var(--accent),var(--accent2));
 }
-
-.result{
+main{
+  max-width:1100px;
+  margin:auto;
+  padding:18px;
+  display:grid;
+  grid-template-columns: 1.4fr .9fr;
+  gap:14px;
+}
+@media (max-width: 980px){
+  main{grid-template-columns:1fr}
+}
+.card{
+  background:linear-gradient(180deg, rgba(15,26,46,.9), rgba(11,21,38,.9));
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:0 18px 60px rgba(0,0,0,.35);
+  overflow:hidden;
+}
+.card .top{
+  padding:14px 14px 10px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.card .top h2{
+  margin:0;
+  font-size:14px;
+  letter-spacing:.6px;
+}
+.card .content{padding:14px}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:10px;
+}
+.field{grid-column:span 3}
+.field.wide{grid-column:span 6}
+.field.full{grid-column:span 12}
+@media (max-width: 820px){
+  .field{grid-column:span 6}
+  .field.wide{grid-column:span 12}
+}
+label{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  margin:0 0 6px 2px;
+}
+input,select,textarea{
+  width:100%;
+  padding:12px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:#071021;
+  color:var(--text);
+  outline:none;
+}
+textarea{min-height:110px; resize:vertical}
+.actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.actions .pill{flex:1}
+.note{
+  font-size:12px;
+  color:var(--muted);
+  margin-top:10px;
+  line-height:1.35;
+}
+.results{
   margin-top:12px;
-  background:#020617;
-  padding:14px;
-  border-radius:12px;
+  display:grid;
+  gap:10px;
+}
+.result{
+  background:#071021;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
   border-left:4px solid var(--ok);
+}
+.bad{
+  border-left-color:var(--bad);
+}
+.badge{
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:rgba(34,197,94,.12);
+  color:var(--ok);
+  font-weight:800;
+}
+.badge.bad{
+  background:rgba(255,93,93,.12);
+  color:var(--bad);
+}
+.small{
+  font-size:12px;
+  color:var(--muted);
+}
+.hr{height:1px;background:var(--line);margin:12px 0}
+.toast{
+  position:fixed; left:50%; transform:translateX(-50%);
+  bottom:16px; z-index:999;
+  background:#071021;
+  border:1px solid var(--line);
+  padding:10px 14px;
+  border-radius:999px;
+  color:var(--text);
+  display:none;
 }
 </style>
 </head>
 
 <body>
 
-<header>AUTO PARTS INTERCHANGE</header>
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="logo">JB</div>
+      <div>
+        <h1>JB Parts Interchange</h1>
+        <div class="sub">Firebase + VIN Decode + Admin Add/Update</div>
+      </div>
+    </div>
+    <button class="pill" type="button" onclick="scrollToAdmin()">Admin</button>
+  </div>
+</header>
+
+<div class="toast" id="toast">Saved ✅</div>
 
 <main>
+  <!-- SEARCH -->
+  <section class="card">
+    <div class="top">
+      <h2>AUTO PARTS INTERCHANGE</h2>
+      <span class="small" id="status">Connecting…</span>
+    </div>
+    <div class="content">
+      <div class="grid">
+        <div class="field wide">
+          <label>VIN (optional)</label>
+          <input id="vin" placeholder="Enter 17-digit VIN" inputmode="latin-prose" />
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="pill primary" type="button" onclick="decodeVIN()">Decode VIN</button>
+        </div>
 
-<!-- ================= SEARCH ================= -->
-<div class="card">
-<div class="grid">
-<input id="vin" placeholder="Enter VIN (optional)">
-<button onclick="decodeVIN()">Decode VIN</button>
+        <div class="field">
+          <label>Year</label>
+          <select id="year">
+            <option value="">Year</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Make</label>
+          <select id="make" disabled>
+            <option value="">Make</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Model</label>
+          <select id="model" disabled>
+            <option value="">Model</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Part</label>
+          <select id="part">
+            <option value="">Part</option>
+            <option>Engine</option>
+            <option>Transmission</option>
+            <option>Wheels</option>
+            <option>Battery</option>
+            <option>Alternator</option>
+            <option>Starter</option>
+            <option>Radiator</option>
+            <option>Headlight</option>
+            <option>Door</option>
+            <option>Bumper</option>
+          </select>
+        </div>
 
-<select id="year"><option>Year</option></select>
-<select id="make"><option>Make</option></select>
-<select id="model"><option>Model</option></select>
-<select id="part">
-  <option>Part</option>
-  <option>Engine</option>
-  <option>Transmission</option>
-  <option>Wheels</option>
-  <option>Battery</option>
-  <option>Alternator</option>
-  <option>Starter</option>
-</select>
-</div>
+        <div class="field full">
+          <button class="pill primary" type="button" onclick="findInterchange()">Find Interchange</button>
+        </div>
+      </div>
 
-<br>
-<button onclick="findParts()">Find Interchange</button>
-<div id="results"></div>
-</div>
+      <div class="results" id="results"></div>
 
-<!-- ================= ADMIN ================= -->
-<div class="card">
-<h3>ADMIN – ADD / UPDATE VEHICLE</h3>
+      <div class="note">
+        If your dropdowns look “dead”, it means <b>Firestore has no data yet</b> or rules are blocking reads.
+        This page is meant to run on <b>Firebase Hosting</b> (not HTML online viewer).
+      </div>
+    </div>
+  </section>
 
-<div class="grid">
-<input id="ayear" placeholder="Year (e.g. 2020)">
-<input id="amake" placeholder="Make (Ford)">
-<input id="amodel" placeholder="Model (F150)">
-<select id="apart">
-  <option>Engine</option>
-  <option>Transmission</option>
-  <option>Wheels</option>
-  <option>Battery</option>
-  <option>Alternator</option>
-  <option>Starter</option>
-</select>
-</div>
+  <!-- ADMIN -->
+  <section class="card" id="adminCard">
+    <div class="top">
+      <h2>ADMIN – ADD / UPDATE VEHICLE</h2>
+      <span class="small">Updates same vehicle (no duplicates)</span>
+    </div>
+    <div class="content">
+      <div class="grid">
+        <div class="field">
+          <label>Year</label>
+          <input id="ayear" placeholder="2020" inputmode="numeric" />
+        </div>
+        <div class="field">
+          <label>Make</label>
+          <input id="amake" placeholder="Ford" />
+        </div>
+        <div class="field">
+          <label>Model</label>
+          <input id="amodel" placeholder="F150" />
+        </div>
+        <div class="field">
+          <label>Part</label>
+          <select id="apart">
+            <option>Engine</option>
+            <option>Transmission</option>
+            <option>Wheels</option>
+            <option>Battery</option>
+            <option>Alternator</option>
+            <option>Starter</option>
+            <option>Radiator</option>
+            <option>Headlight</option>
+            <option>Door</option>
+            <option>Bumper</option>
+          </select>
+        </div>
 
-<br>
-<textarea id="ainterchange" rows="4"
-placeholder="One interchange per line
-Example:
+        <div class="field full">
+          <label>Interchange list (one per line)</label>
+          <textarea id="ainterchange" placeholder="Example:
 2018–2020 Ford F150 5.0L
-2017–2019 Expedition"></textarea>
+2017–2019 Ford Expedition 5.0L
+2018–2021 Mustang 5.0L"></textarea>
+        </div>
 
-<br><br>
-<button onclick="addVehicle()">Save Vehicle / Part</button>
-</div>
+        <div class="field full actions">
+          <button class="pill primary" type="button" onclick="saveVehiclePart()">Save Vehicle / Part</button>
+          <button class="pill secondary" type="button" onclick="seedExample()">Seed Example Data</button>
+        </div>
+      </div>
 
+      <div class="hr"></div>
+
+      <div class="note">
+        <b>Important:</b> For real security, you’ll add Firebase Auth so only you can write.
+        For now, use rules for testing then lock it down.
+      </div>
+    </div>
+  </section>
 </main>
 
-<script>
-/* ================= FIREBASE ================= */
-firebase.initializeApp({
-  apiKey:"YOUR_KEY",
-  authDomain:"YOUR_PROJECT.firebaseapp.com",
-  projectId:"YOUR_PROJECT"
-});
-const db=firebase.firestore();
+<!-- ✅ Everything Firebase in one place -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    getDocs,
+    query,
+    where,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    limit
+  } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
-/* ================= LOAD YEARS ================= */
-const yearSel=year, makeSel=make, modelSel=model;
-
-async function loadYears(){
-  yearSel.innerHTML="<option>Year</option>";
-  const snap=await db.collection("vehicles").get();
-  [...new Set(snap.docs.map(d=>d.data().year))]
-    .sort().forEach(y=>yearSel.innerHTML+=`<option>${y}</option>`);
-}
-loadYears();
-
-yearSel.onchange=async()=>{
-  makeSel.innerHTML="<option>Make</option>";
-  modelSel.innerHTML="<option>Model</option>";
-  const snap=await db.collection("vehicles")
-    .where("year","==",Number(yearSel.value)).get();
-  [...new Set(snap.docs.map(d=>d.data().make))]
-    .forEach(m=>makeSel.innerHTML+=`<option>${m}</option>`);
-};
-
-makeSel.onchange=async()=>{
-  modelSel.innerHTML="<option>Model</option>";
-  const snap=await db.collection("vehicles")
-    .where("year","==",Number(yearSel.value))
-    .where("make","==",makeSel.value).get();
-  snap.docs.forEach(d=>modelSel.innerHTML+=`<option>${d.data().model}</option>`);
-};
-
-/* ================= VIN DECODE ================= */
-async function decodeVIN(){
-  const v=vin.value.trim();
-  if(v.length!==17) return alert("Invalid VIN");
-  const r=await fetch(
-    `https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${v}?format=json`
-  );
-  const d=(await r.json()).Results[0];
-  yearSel.value=d.ModelYear;
-  yearSel.dispatchEvent(new Event("change"));
-  setTimeout(()=>{
-    makeSel.value=d.Make;
-    makeSel.dispatchEvent(new Event("change"));
-    setTimeout(()=>modelSel.value=d.Model,500);
-  },500);
-}
-
-/* ================= FIND INTERCHANGE ================= */
-async function findParts(){
-  results.innerHTML="";
-  const snap=await db.collection("vehicles")
-    .where("year","==",Number(yearSel.value))
-    .where("make","==",makeSel.value)
-    .where("model","==",modelSel.value)
-    .get();
-
-  if(snap.empty){
-    results.innerHTML="<div class='result'>No data found.</div>";
-    return;
-  }
-
-  const part=part.value;
-  const list=snap.docs[0].data().parts?.[part];
-  if(!list){
-    results.innerHTML="<div class='result'>No interchange available.</div>";
-    return;
-  }
-
-  list.forEach(i=>results.innerHTML+=`<div class="result">${i}</div>`);
-}
-
-/* ================= ADMIN SAVE ================= */
-async function addVehicle(){
-  const data={
-    year:Number(ayear.value),
-    make:amake.value,
-    model:amodel.value,
-    parts:{
-      [apart.value]: ainterchange.value.split("\n").filter(Boolean)
-    }
+  // ✅ YOUR Firebase config already installed
+  const firebaseConfig = {
+    apiKey: "AIzaSyDZOxfCjD9kAZJDlVLRT_enhXXZCC3GlH0",
+    authDomain: "jb-parts-interchanges.firebaseapp.com",
+    projectId: "jb-parts-interchanges",
+    storageBucket: "jb-parts-interchanges.firebasestorage.app",
+    messagingSenderId: "117852934482",
+    appId: "1:117852934482:web:4991c3d36378e011a0aa8b",
+    measurementId: "G-4ZPC6KHM3N"
   };
-  await db.collection("vehicles").add(data);
-  alert("Saved");
-  loadYears();
-}
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // DOM
+  const statusEl = document.getElementById("status");
+  const toastEl = document.getElementById("toast");
+
+  const yearSel  = document.getElementById("year");
+  const makeSel  = document.getElementById("make");
+  const modelSel = document.getElementById("model");
+  const partSel  = document.getElementById("part");
+  const vinEl    = document.getElementById("vin");
+  const resultsEl= document.getElementById("results");
+
+  const ayear = document.getElementById("ayear");
+  const amake = document.getElementById("amake");
+  const amodel = document.getElementById("amodel");
+  const apart = document.getElementById("apart");
+  const ainterchange = document.getElementById("ainterchange");
+
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.style.display = "block";
+    setTimeout(()=>toastEl.style.display="none", 1800);
+  }
+
+  function norm(s){
+    return String(s || "")
+      .trim()
+      .replace(/\s+/g," ")
+      .toLowerCase();
+  }
+
+  function titleCaseKeepDigits(s){
+    // simple nice display: "ford" -> "Ford", "F150" stays "F150"
+    const parts = String(s||"").trim().split(/\s+/);
+    return parts.map(p=>{
+      if(/[0-9]/.test(p)) return p.toUpperCase();
+      return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
+    }).join(" ");
+  }
+
+  function vehicleId(year, make, model){
+    // Stable ID so we UPDATE instead of making duplicates
+    return `${year}_${norm(make)}_${norm(model)}`.replace(/[^a-z0-9_]/g,"");
+  }
+
+  function resetSelect(sel, label){
+    sel.innerHTML = `<option value="">${label}</option>`;
+    sel.disabled = false;
+  }
+  function setLoading(sel, label){
+    sel.innerHTML = `<option value="">${label}</option>`;
+    sel.disabled = true;
+  }
+  function addOption(sel, text){
+    const o = document.createElement("option");
+    o.value = text;
+    o.textContent = text;
+    sel.appendChild(o);
+  }
+
+  async function ping(){
+    try{
+      // simple read to check connectivity
+      await getDocs(query(collection(db,"vehicles"), limit(1)));
+      statusEl.textContent = "Connected ✅";
+    }catch(e){
+      console.error(e);
+      statusEl.textContent = "Blocked ❌";
+    }
+  }
+
+  async function loadYears(){
+    try{
+      setLoading(yearSel, "Loading years...");
+      setLoading(makeSel, "Make");
+      setLoading(modelSel, "Model");
+
+      const snap = await getDocs(collection(db,"vehicles"));
+      const years = [...new Set(snap.docs.map(d=>d.data()?.year))]
+        .filter(v=>typeof v === "number")
+        .sort((a,b)=>a-b);
+
+      resetSelect(yearSel, "Year");
+      years.forEach(y=>addOption(yearSel, String(y)));
+
+      resetSelect(makeSel, "Make");
+      makeSel.disabled = true;
+      resetSelect(modelSel, "Model");
+      modelSel.disabled = true;
+
+      if(years.length===0){
+        resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">No data yet</span><div style="margin-top:8px">Use the Admin box to Seed Example Data or add your first vehicle.</div></div>`;
+      }
+    }catch(e){
+      console.error(e);
+      resetSelect(yearSel, "Year");
+      statusEl.textContent = "Rules/Hosting issue ❌";
+      resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">Firebase blocked</span><div style="margin-top:8px">This page must run on Firebase Hosting (or localhost server). HTML online viewers often block Firestore.</div></div>`;
+    }
+  }
+
+  async function loadMakes(){
+    resetSelect(makeSel,"Make");
+    resetSelect(modelSel,"Model");
+    modelSel.disabled = true;
+
+    if(!yearSel.value){
+      makeSel.disabled = true;
+      return;
+    }
+
+    setLoading(makeSel,"Loading makes...");
+    const qy = query(collection(db,"vehicles"), where("year","==", Number(yearSel.value)));
+    const snap = await getDocs(qy);
+
+    const makes = [...new Set(snap.docs.map(d=>d.data()?.make))]
+      .filter(Boolean)
+      .map(m=>titleCaseKeepDigits(m))
+      .sort();
+
+    resetSelect(makeSel,"Make");
+    makes.forEach(m=>addOption(makeSel,m));
+  }
+
+  async function loadModels(){
+    resetSelect(modelSel,"Model");
+    if(!yearSel.value || !makeSel.value){
+      modelSel.disabled = true;
+      return;
+    }
+
+    setLoading(modelSel,"Loading models...");
+    const qm = query(
+      collection(db,"vehicles"),
+      where("year","==", Number(yearSel.value)),
+      where("make","==", makeSel.value)
+    );
+    const snap = await getDocs(qm);
+
+    const models = [...new Set(snap.docs.map(d=>d.data()?.model))]
+      .filter(Boolean)
+      .map(m=>titleCaseKeepDigits(m))
+      .sort();
+
+    resetSelect(modelSel,"Model");
+    models.forEach(m=>addOption(modelSel,m));
+  }
+
+  async function findInterchange(){
+    resultsEl.innerHTML = "";
+
+    const y = Number(yearSel.value);
+    const mk = makeSel.value;
+    const md = modelSel.value;
+    const pt = partSel.value;
+
+    if(!y || !mk || !md || !pt){
+      resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">Missing</span><div style="margin-top:8px">Pick Year / Make / Model / Part.</div></div>`;
+      return;
+    }
+
+    const qv = query(
+      collection(db,"vehicles"),
+      where("year","==", y),
+      where("make","==", mk),
+      where("model","==", md),
+      limit(1)
+    );
+    const snap = await getDocs(qv);
+
+    if(snap.empty){
+      resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">No data found</span><div style="margin-top:8px">Add it in Admin or seed example data.</div></div>`;
+      return;
+    }
+
+    const data = snap.docs[0].data();
+    const list = data?.parts?.[pt];
+
+    if(!Array.isArray(list) || list.length===0){
+      resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">No interchange</span><div style="margin-top:8px">No list saved for ${pt} on this vehicle.</div></div>`;
+      return;
+    }
+
+    resultsEl.innerHTML = `<div class="result"><span class="badge">Found</span><div style="margin-top:8px" class="small">${y} ${mk} ${md} • ${pt}</div></div>`;
+    list.forEach(item=>{
+      const div = document.createElement("div");
+      div.className = "result";
+      div.textContent = item;
+      resultsEl.appendChild(div);
+    });
+  }
+
+  async function decodeVIN(){
+    const v = (vinEl.value || "").trim().toUpperCase();
+    if(v.length !== 17){
+      toast("Enter a 17-digit VIN");
+      return;
+    }
+
+    resultsEl.innerHTML = `<div class="result"><span class="badge">Decoding…</span><div style="margin-top:8px">Looking up VIN with NHTSA.</div></div>`;
+
+    const r = await fetch(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValuesExtended/${v}?format=json`);
+    const d = (await r.json()).Results?.[0] || {};
+
+    const y = d.ModelYear ? String(d.ModelYear) : "";
+    const mk = d.Make ? titleCaseKeepDigits(d.Make) : "";
+    const md = d.Model ? titleCaseKeepDigits(d.Model) : "";
+
+    if(!y || !mk || !md){
+      resultsEl.innerHTML = `<div class="result bad"><span class="badge bad">Decode failed</span><div style="margin-top:8px">VIN decoded, but Year/Make/Model missing from response.</div></div>`;
+      return;
+    }
+
+    yearSel.value = y;
+    await loadMakes();
+    makeSel.value = mk;
+    await loadModels();
+    modelSel.value = md;
+
+    resultsEl.innerHTML = `<div class="result"><span class="badge">VIN OK</span><div style="margin-top:8px">${y} ${mk} ${md}</div></div>`;
+  }
+
+  async function saveVehiclePart(){
+    const y = Number((ayear.value||"").trim());
+    const mk = titleCaseKeepDigits(amake.value);
+    const md = titleCaseKeepDigits(amodel.value);
+    const pt = apart.value;
+
+    const lines = (ainterchange.value||"")
+      .split("\n")
+      .map(s=>s.trim())
+      .filter(Boolean);
+
+    if(!y || !mk || !md || !pt || lines.length===0){
+      toast("Fill all admin fields");
+      return;
+    }
+
+    const id = vehicleId(y, mk, md);
+    const ref = doc(db, "vehicles", id);
+    const snap = await getDoc(ref);
+
+    // Merge parts without wiping other parts
+    const newPartMap = { [pt]: lines };
+
+    if(!snap.exists()){
+      await setDoc(ref, {
+        year: y,
+        make: mk,
+        model: md,
+        parts: newPartMap
+      });
+    }else{
+      const existing = snap.data() || {};
+      const parts = existing.parts || {};
+      parts[pt] = lines;
+      await updateDoc(ref, { parts });
+    }
+
+    toast("Saved ✅");
+    await loadYears();
+
+    // Optional: auto-select after save
+    yearSel.value = String(y);
+    await loadMakes();
+    makeSel.value = mk;
+    await loadModels();
+    modelSel.value = md;
+    partSel.value = pt;
+  }
+
+  async function seedExample(){
+    ayear.value = "2018";
+    amake.value = "Ford";
+    amodel.value = "F150";
+    apart.value = "Engine";
+    ainterchange.value = [
+      "2018–2020 Ford F150 5.0L",
+      "2017–2019 Ford Expedition 5.0L",
+      "2018–2021 Ford Mustang 5.0L"
+    ].join("\n");
+    await saveVehiclePart();
+
+    ayear.value = "2018";
+    amake.value = "Ford";
+    amodel.value = "F150";
+    apart.value = "Wheels";
+    ainterchange.value = [
+      "2015–2020 Ford F150 17in/18in wheels",
+      "2017–2020 Ford Expedition wheels"
+    ].join("\n");
+    await saveVehiclePart();
+
+    ayear.value = "2020";
+    amake.value = "Toyota";
+    amodel.value = "Camry";
+    apart.value = "Battery";
+    ainterchange.value = [
+      "2018–2023 Toyota Camry battery group",
+      "2019–2022 Toyota RAV4 battery"
+    ].join("\n");
+    await saveVehiclePart();
+
+    toast("Seeded examples ✅");
+  }
+
+  function scrollToAdmin(){
+    document.getElementById("adminCard").scrollIntoView({behavior:"smooth", block:"start"});
+  }
+
+  // expose buttons
+  window.findInterchange = findInterchange;
+  window.decodeVIN = decodeVIN;
+  window.saveVehiclePart = saveVehiclePart;
+  window.seedExample = seedExample;
+  window.scrollToAdmin = scrollToAdmin;
+
+  yearSel.addEventListener("change", loadMakes);
+  makeSel.addEventListener("change", loadModels);
+
+  // init
+  await ping();
+  await loadYears();
 </script>
 
 </body>
